@@ -34,23 +34,25 @@ class AuthController extends Controller
        
         $response = [
             'message' => 'Registration successful. Please check your email for verification link.',
-             'user'=> $formFields, 'token' => $token   ];
+             'user'=> $user, 'token' => $token   ];
         return response($response, 201); 
 
-       // return response()->json(['message' => 'Registration successful. Please check your email for verification link.'], 201);
     }
 
 
 
-    public function verifyEmail(EmailVerificationRequest $request)
-     {
-        if ($request->user()->hasVerifiedEmail()) {
-            return [ 'message' => 'Email already verified'  ];
-           // return redirect(env('FRONT_URL') . '/email/verify/already-success');
-        }
-        $request->fulfill();
-      //  return redirect(env('FRONT_URL') . '/email/verify/success');
-        return response()->json(['message' => 'Email verified successfully.'], 200);
+    public function verifyEmail($id, $hash)
+    {
+        $user = User::find($id);
+        abort_if(!$user, 405);
+        abort_if(!hash_equals($hash, sha1($user->getEmailForVerification())), 405);
+
+        if (!$user->hasVerifiedEmail()) {
+            $user->markEmailAsVerified();
+            event(new Verified($user));        
+            }
+            return [   'message' => 'Email verified', 'status'=>true     ];
+        
     }
         
     
@@ -98,8 +100,7 @@ class AuthController extends Controller
 
     // Logout User
     public function logout(Request $request) {
-       auth()->user()->tokens()->delete();
-       //$request->user()->currentAccessToken()->delete();
+       $request->user()->currentAccessToken()->delete();
        
         return [
             'message' => 'Logged out'

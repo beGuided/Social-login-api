@@ -24,9 +24,11 @@ Route::group(['prefix' => 'v1'], function () {
         
     Route::post('/register', [AuthController::class, 'register']);
     Route::post('/login', [AuthController::class, 'login']);
+    Route::get('/email/verify-email/{id}/{hash}', [AuthController::class, 'verifyEmail'])->name('verification.verify');
 
     Route::post('password/forgot-password', [NewPasswordController::class, 'forgotPassword']);
     Route::post('password/reset', [NewPasswordController::class, 'reset']);
+
 
    // social login impimentation
     Route::get('login/{driver}', [SocialLoginController::class, 'redirectToProvider']);
@@ -38,7 +40,6 @@ Route::group(['prefix' => 'v1'], function () {
  Route::group(  ['middleware'=> ['auth:sanctum'],  'prefix' => 'v1' ], function () {  
 
     Route::post('/logout', [AuthController::class, 'logout']);
-    Route::get('/email/verify-email/{id}/{hash}', [AuthController::class, 'verifyEmail'])->name('verification.verify');
    
  });
       
